@@ -4,19 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HKDSE 公民與社會發展科 (CSD) 自主學習樂園</title>
-  
-  <!-- Tailwind CSS -->
+
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- FontAwesome -->
+
+  <!-- FontAwesome Icons -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  
+
   <!-- Google Fonts: Noto Sans TC & Comic Neue -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
 
-  <!-- Tailwind Configuration -->
+  <!-- PDF.js 核心函式庫 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <!-- Tailwind 自訂主題配色與字體 -->
   <script>
     tailwind.config = {
       theme: {
@@ -33,241 +36,437 @@
           }
         }
       }
-    }
+    };
   </script>
 
-  <!-- Custom CSS -->
   <style>
-    html {
-      scroll-behavior: smooth;
-    }
-    body {
-      background-color: #fcfdf8;
-      font-family: 'Noto Sans TC', sans-serif;
-    }
-    
-    @keyframes float {
-      0% { transform: translateY(0px); }
-      50% { transform: translateY(-12px); }
-      100% { transform: translateY(0px); }
-    }
-    .floating {
-      display: inline-block;
-      animation: float 3s ease-in-out infinite;
-    }
-    .floating-delay {
-      display: inline-block;
-      animation: float 3s ease-in-out infinite;
-      animation-delay: 1.5s;
-    }
+    html { scroll-behavior: smooth; }
+    body { background-color: #fcfdf8; font-family: 'Noto Sans TC', sans-serif; }
 
-    /* 預設顯示 active 分頁，避免 JS 延遲導致空白 */
-    .tab-content {
-      display: none;
+    /* 吉祥物上下浮動動畫 */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
     }
-    .tab-content.active {
-      display: block;
-      animation: fadeIn 0.4s ease forwards;
-    }
+    .floating { display: inline-block; animation: float 3s ease-in-out infinite; }
+    .floating-delay { display: inline-block; animation: float 3s ease-in-out infinite 1.5s; }
+
+    /* 分頁切換過渡效果 */
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeIn 0.3s ease forwards; }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
+      from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    
-    /* 自訂卷軸樣式 */
-    .custom-scrollbar::-webkit-scrollbar {
-      height: 8px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #f1f1f1; 
-      border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #c1c1c1; 
-      border-radius: 4px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #a8a8a8; 
-    }
+
+    /* 橫向捲軸美化 */
+    .custom-scrollbar::-webkit-scrollbar { height: 8px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #e5e7eb; border-radius: 9999px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #22c55e; border-radius: 9999px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #16a34a; }
   </style>
 </head>
-<body class="text-gray-800 antialiased min-h-screen flex flex-col">
+<body class="text-gray-800 antialiased flex flex-col min-h-screen">
 
-  <!-- 導覽列 -->
+  <!-- 頂部導覽列（支援桌面版分頁與手機版漢堡選單） -->
   <nav class="bg-bamboo text-white shadow-md sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
         <div class="flex items-center">
-          <i class="fa-solid fa-graduation-cap text-2xl mr-2 text-warmgold"></i>
-          <span class="font-bold text-lg md:text-xl tracking-wide">HKDSE 公民科自學樂園</span>
+          <i class="fa-solid fa-graduation-cap text-2xl mr-2.5 text-warmgold"></i>
+          <span class="font-bold text-lg sm:text-xl tracking-wide">HKDSE 公民科自學樂園</span>
         </div>
-        
+
+        <!-- 桌面版導覽按鈕 -->
         <div class="hidden md:flex items-center space-x-2">
-          <!-- 預設第一個按鈕為選中狀態 -->
-          <button onclick="switchTab('notes')" class="tab-btn px-4 py-2 rounded-lg font-medium transition-colors duration-200 bg-white text-bamboo shadow-sm" data-target="notes">
-            <i class="fa-solid fa-book-open mr-1"></i> 課題溫習筆記
+          <button type="button" onclick="switchTab('notes')" class="nav-tab-btn px-4 py-2 rounded-xl font-bold text-sm transition bg-white text-bamboo shadow-sm" data-target="notes">
+            <i class="fa-solid fa-book-open mr-1.5"></i>課題溫習筆記
           </button>
-          <button onclick="switchTab('ai')" class="tab-btn px-4 py-2 rounded-lg font-medium transition-colors duration-200 hover:bg-green-600" data-target="ai">
-            <i class="fa-solid fa-robot mr-1"></i> AI 智能評改系統
+          <button type="button" onclick="switchTab('ai')" class="nav-tab-btn px-4 py-2 rounded-xl font-bold text-sm transition hover:bg-green-600" data-target="ai">
+            <i class="fa-solid fa-robot mr-1.5"></i>AI 智能評改系統
           </button>
         </div>
-        
+
+        <!-- 手機版漢堡選單按鈕 -->
         <div class="md:hidden flex items-center">
-          <button onclick="toggleMobileMenu()" class="text-white hover:text-warmgold focus:outline-none p-2">
+          <button type="button" onclick="toggleMobileMenu()" aria-label="開啟選單" class="text-white hover:text-warmgold p-2 rounded-lg focus:outline-none">
             <i class="fa-solid fa-bars text-2xl"></i>
           </button>
         </div>
       </div>
     </div>
 
-    <div id="mobile-menu" class="hidden md:hidden bg-green-600 border-t border-green-500 shadow-inner">
-      <button onclick="switchTab('notes'); toggleMobileMenu()" class="block w-full text-left px-6 py-3 hover:bg-green-700 font-medium border-b border-green-500/30">
-        <i class="fa-solid fa-book-open mr-2"></i> 課題溫習筆記
+    <!-- 手機版下拉選單 -->
+    <div id="mobile-menu" class="hidden md:hidden bg-green-600 border-t border-green-500">
+      <button type="button" onclick="switchTab('notes'); toggleMobileMenu()" class="block w-full text-left px-6 py-3 font-bold hover:bg-green-700 border-b border-green-500/40">
+        <i class="fa-solid fa-book-open mr-2"></i>課題溫習筆記
       </button>
-      <button onclick="switchTab('ai'); toggleMobileMenu()" class="block w-full text-left px-6 py-3 hover:bg-green-700 font-medium">
-        <i class="fa-solid fa-robot mr-2"></i> AI 智能評改系統
+      <button type="button" onclick="switchTab('ai'); toggleMobileMenu()" class="block w-full text-left px-6 py-3 font-bold hover:bg-green-700">
+        <i class="fa-solid fa-robot mr-2"></i>AI 智能評改系統
       </button>
     </div>
   </nav>
 
   <!-- Hero Banner 區塊 -->
-  <header class="max-w-5xl mx-auto px-4 py-8 md:py-12 text-center">
-    <div class="flex justify-center items-center space-x-3 mb-4 text-4xl md:text-5xl">
-      <span class="floating font-comic">🐼</span>
-      <h1 class="font-black text-gray-800 leading-tight">
-        掌控考試脈搏，<br class="md:hidden"><span class="text-bamboo">輕鬆獲取佳績！</span>
-      </h1>
-      <span class="floating-delay font-comic">🐲</span>
+  <header class="max-w-5xl mx-auto px-4 pt-7 pb-5 text-center">
+    <div class="flex justify-center items-center space-x-3 text-2xl sm:text-4xl font-black text-gray-800">
+      <span class="floating font-comic" title="熊貓波波">🐼</span>
+      <h1 class="leading-tight">掌控考試脈搏，<span class="text-bamboo">輕鬆獲取佳績！</span></h1>
+      <span class="floating-delay font-comic" title="小祥龍">🐲</span>
     </div>
-    <p class="mt-4 text-base md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-      專為 HKDSE 公民與社會發展科設計的自主學習平台。<br class="hidden md:block">
-      結合 <span class="font-bold text-yellow-600">《速讀精華手冊》高清筆記</span> 與強大的 <span class="font-bold text-bamboo">考評局閱卷標準 AI 評改助手</span>，助你高效溫習！
+    <p class="mt-3 text-sm sm:text-base text-gray-600 max-w-3xl mx-auto leading-relaxed">
+      專為 HKDSE 公民與社會發展科設計的自主學習平台，結合
+      <span class="font-bold text-yellow-600">《速讀精華手冊》高清筆記</span> 與
+      <span class="font-bold text-bamboo">考評局閱卷標準 AI 評改助手</span>，助你高效溫習！
     </p>
+
+    <!-- 醒目雙分頁快速切換列（在任何螢幕寬度下皆一目了然） -->
+    <div class="mt-5 inline-flex bg-white p-1.5 rounded-2xl shadow-sm border border-gray-200 gap-1.5">
+      <button type="button" onclick="switchTab('notes')" class="pill-tab-btn px-5 py-2.5 rounded-xl text-sm font-bold transition bg-bamboo text-white shadow" data-target="notes">
+        <i class="fa-solid fa-book-open mr-1.5"></i>課題溫習筆記
+      </button>
+      <button type="button" onclick="switchTab('ai')" class="pill-tab-btn px-5 py-2.5 rounded-xl text-sm font-bold transition text-gray-600 hover:bg-gray-100" data-target="ai">
+        <i class="fa-solid fa-robot mr-1.5"></i>AI 智能評改系統
+      </button>
+    </div>
   </header>
 
-  <!-- 主要內容區塊 -->
-  <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-16">
-    
-    <!-- 分頁一：課題溫習筆記（直接加上 active 確保預設顯示） -->
-    <div id="notes" class="tab-content active">
-      
-      <!-- 圖片快速導航卡片區 -->
-      <div class="mb-8">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg md:text-xl font-bold text-gray-800 flex items-center">
-            <i class="fa-solid fa-compass text-warmgold mr-2 text-xl"></i> 單元章節快速導航（左右滑動並點擊卡片直接跳轉至相關頁數）
-          </h3>
+  <!-- 主要內容區 -->
+  <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-14">
+
+    <!-- ==================== 分頁一：課題溫習筆記 ==================== -->
+    <section id="notes" class="tab-panel active">
+
+      <!-- 14 批次單元章節圖片快速導航 -->
+      <div class="mb-6">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="text-base sm:text-lg font-bold text-gray-800 flex items-center">
+            <i class="fa-solid fa-compass text-warmgold mr-2 text-xl"></i>
+            單元章節快速導航（點擊卡片直接跳至對應頁數，可左右滑動）
+          </h2>
+        </div>
+        <!-- 由 JavaScript 自動渲染 14 張卡片 -->
+        <div id="chapter-cards" class="flex overflow-x-auto pb-4 custom-scrollbar gap-4 snap-x"></div>
+      </div>
+
+      <!-- PDF 閱讀視窗 -->
+      <div id="pdf-viewer-box" class="bg-white rounded-2xl shadow-sm border border-gray-200 border-t-4 border-t-bamboo p-4 sm:p-6">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <h2 class="text-lg sm:text-2xl font-bold text-gray-800 flex items-center">
+            <i class="fa-solid fa-book-open text-bamboo mr-2.5"></i>《速讀精華手冊.pdf》在線閱讀視窗
+          </h2>
+          <!-- 動態頁碼提示膠囊 -->
+          <div id="page-indicator" class="hidden items-center bg-yellow-100 border border-warmgold text-yellow-900 text-xs sm:text-sm font-bold px-3.5 py-1.5 rounded-full">
+            <i class="fa-solid fa-bookmark text-yellow-600 mr-1.5"></i>
+            <span id="page-indicator-text">書頁 P.1（PDF 第 5 頁）</span>
+          </div>
         </div>
 
-        <div class="flex overflow-x-auto pb-6 pt-2 custom-scrollbar gap-5 snap-x">
-          
-          <!-- 卡片 1 -->
-          <div onclick="jumpToPage(7, 1, '第一批：答題與考試技巧')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border-2 border-transparent hover:border-bamboo transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
-            <div class="relative h-40 bg-gray-100 overflow-hidden">
-              <img src="https://drive.google.com/thumbnail?id=1guJu7ePIiq2JEOxJrWaGIM9cwxedu-Ed&sz=w600-h400" alt="答題與考試技巧" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-              <span class="absolute top-3 right-3 bg-warmgold text-gray-900 text-xs font-black px-3 py-1 rounded-full shadow">書頁第 1 頁</span>
-            </div>
-            <div class="p-4 flex-grow">
-              <h4 class="font-bold text-gray-800 group-hover:text-bamboo transition-colors text-sm">第一批：答題與考試技巧</h4>
-              <p class="text-xs text-gray-500 mt-2 leading-relaxed">評核模式分析、綜合技巧Q&A、多項選擇題技巧、短題目技巧</p>
-            </div>
+        <!-- 閱讀器控制列（不設下載按鈕） -->
+        <div class="flex flex-wrap items-center justify-between gap-2 bg-gray-100 px-3 sm:px-4 py-2.5 rounded-t-xl border border-b-0 border-gray-200">
+          <div class="flex items-center space-x-2">
+            <button type="button" onclick="prevPage()" class="bg-white hover:bg-bamboo hover:text-white text-gray-700 font-bold py-1.5 px-3 rounded-lg shadow-sm border border-gray-200 text-xs sm:text-sm transition">
+              <i class="fa-solid fa-chevron-left mr-1"></i>上一頁
+            </button>
+            <button type="button" onclick="nextPage()" class="bg-white hover:bg-bamboo hover:text-white text-gray-700 font-bold py-1.5 px-3 rounded-lg shadow-sm border border-gray-200 text-xs sm:text-sm transition">
+              下一頁<i class="fa-solid fa-chevron-right ml-1"></i>
+            </button>
           </div>
 
-          <!-- 卡片 2 -->
-          <div onclick="jumpToPage(15, 9, '第二批：短文章寫作與香港憲制')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border-2 border-transparent hover:border-bamboo transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
-            <div class="relative h-40 bg-gray-100 overflow-hidden">
-              <img src="https://drive.google.com/thumbnail?id=1FaP_QWGF4i4wfvK6OwqJZvaxR7iA06LQ&sz=w600-h400" alt="短文章寫作與香港憲制" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-              <span class="absolute top-3 right-3 bg-warmgold text-gray-900 text-xs font-black px-3 py-1 rounded-full shadow">書頁第 9 頁</span>
-            </div>
-            <div class="p-4 flex-grow">
-              <h4 class="font-bold text-gray-800 group-hover:text-bamboo transition-colors text-sm">第二批：短文章寫作與香港憲制</h4>
-              <p class="text-xs text-gray-500 mt-2 leading-relaxed">短文章式問題技巧、香港回歸、國家與香港的憲制關係、「一國兩制」、「港人治港」、高度自治</p>
-            </div>
+          <div class="flex items-center space-x-2 text-xs sm:text-sm font-bold text-gray-700">
+            <span>PDF 頁碼：</span>
+            <input id="page-input" type="number" min="1" value="1" onchange="goToInputPage()" class="w-16 text-center bg-white border border-gray-300 rounded-lg py-1 font-bold focus:outline-none focus:border-bamboo">
+            <span>/ <span id="page-count">--</span></span>
           </div>
 
-          <!-- 卡片 3 -->
-          <div onclick="jumpToPage(40, 34, '第三批：香港法治與政治體制')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border-2 border-transparent hover:border-bamboo transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
-            <div class="relative h-40 bg-gray-100 overflow-hidden">
-              <img src="https://drive.google.com/thumbnail?id=1wL-3nwndOh9bX73g6Bq4N9ZboovBIC-i&sz=w600-h400" alt="香港法治與政治體制" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-              <span class="absolute top-3 right-3 bg-warmgold text-gray-900 text-xs font-black px-3 py-1 rounded-full shadow">書頁第 34 頁</span>
-            </div>
-            <div class="p-4 flex-grow">
-              <h4 class="font-bold text-gray-800 group-hover:text-bamboo transition-colors text-sm">第三批：香港法治與政治體制</h4>
-              <p class="text-xs text-gray-500 mt-2 leading-relaxed">國家安全、香港特區的政治體制、行政主導下的「三權」關係、法治精神</p>
-            </div>
+          <div class="flex items-center space-x-2">
+            <button type="button" onclick="changeZoom(-0.2)" class="bg-white hover:bg-gray-200 text-gray-700 py-1.5 px-2.5 rounded-lg shadow-sm border border-gray-200 text-xs sm:text-sm transition" title="縮小">
+              <i class="fa-solid fa-magnifying-glass-minus"></i>
+            </button>
+            <button type="button" onclick="changeZoom(0.2)" class="bg-white hover:bg-gray-200 text-gray-700 py-1.5 px-2.5 rounded-lg shadow-sm border border-gray-200 text-xs sm:text-sm transition" title="放大">
+              <i class="fa-solid fa-magnifying-glass-plus"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- PDF 渲染畫布區（高度 680px） -->
+        <div class="w-full h-[680px] rounded-b-xl overflow-auto border border-gray-200 bg-gray-700 flex justify-center items-start p-4 relative">
+          <div id="pdf-loading" class="text-white text-center my-auto px-4">
+            <i class="fa-solid fa-circle-notch fa-spin text-4xl text-warmgold mb-3"></i>
+            <p class="font-bold text-base">正在載入《速讀精華手冊》高清筆記，請稍候...</p>
+          </div>
+          <canvas id="pdf-canvas" class="hidden shadow-2xl bg-white max-w-full h-auto rounded"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== 分頁二：AI 智能評改系統 ==================== -->
+    <section id="ai" class="tab-panel">
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-200 border-t-4 border-t-brick p-6 sm:p-8">
+
+        <!-- 標題與磚紅色重點按鈕 -->
+        <div class="text-center mb-10">
+          <h2 class="text-2xl sm:text-3xl font-bold text-gray-800 mb-5">
+            <i class="fa-solid fa-robot text-brick mr-2"></i>AICMark 智能評改系統
+          </h2>
+          <a href="https://aicmark.com/dashboard" target="_blank" rel="noopener noreferrer" class="inline-flex items-center justify-center bg-brick hover:bg-red-600 text-white text-base sm:text-lg font-bold py-3.5 px-8 rounded-full shadow-lg hover:shadow-xl transition transform hover:-translate-y-0.5">
+            前往 AICMark 評改系統控制台
+            <i class="fa-solid fa-arrow-up-right-from-square ml-2 text-sm"></i>
+          </a>
+        </div>
+
+        <!-- 學校帳戶登記及登入教學指南（三步驟卡片） -->
+        <div class="mb-10">
+          <div class="text-center mb-8">
+            <h3 class="text-xl font-bold text-gray-800 inline-block border-b-4 border-warmgold pb-2 px-4">
+              學校帳戶登記及登入教學指南
+            </h3>
           </div>
 
-          <!-- 卡片 4 -->
-          <div onclick="jumpToPage(52, 46, '第四批：國家認同與公民素養')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border-2 border-transparent hover:border-bamboo transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
-            <div class="relative h-40 bg-gray-100 overflow-hidden">
-              <img src="https://drive.google.com/thumbnail?id=1QfADhBgHbhOn9ZbSKf_o5FCkFXvr0F4U&sz=w600-h400" alt="國家認同與公民素養" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-              <span class="absolute top-3 right-3 bg-warmgold text-gray-900 text-xs font-black px-3 py-1 rounded-full shadow">書頁第 46 頁</span>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-7">
+            <!-- 步驟 1 -->
+            <div class="bg-yellow-50/70 rounded-2xl p-6 border border-yellow-200/70 text-center relative pt-10">
+              <div class="w-11 h-11 bg-warmgold text-gray-900 rounded-full flex items-center justify-center text-lg font-black absolute -top-5 left-1/2 -translate-x-1/2 shadow">1</div>
+              <div class="bg-white w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
+                <i class="fa-solid fa-arrow-pointer text-2xl text-yellow-500"></i>
+              </div>
+              <h4 class="font-bold text-lg mb-2 text-gray-800">開啟網站</h4>
+              <p class="text-gray-600 text-sm leading-relaxed">點擊上方按鈕開啟 AICMark 系統，並在頁面中點擊「登入 / 註冊」。</p>
             </div>
-            <div class="p-4 flex-grow">
-              <h4 class="font-bold text-gray-800 group-hover:text-bamboo transition-colors text-sm">第四批：國家認同與公民素養</h4>
-              <p class="text-xs text-gray-500 mt-2 leading-relaxed">香港居民的權利與義務、國家的政治體制、中華民族、國旗、國徽、國歌</p>
+
+            <!-- 步驟 2 -->
+            <div class="bg-yellow-50/70 rounded-2xl p-6 border border-yellow-200/70 text-center relative pt-10">
+              <div class="w-11 h-11 bg-warmgold text-gray-900 rounded-full flex items-center justify-center text-lg font-black absolute -top-5 left-1/2 -translate-x-1/2 shadow">2</div>
+              <div class="bg-white w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
+                <i class="fa-solid fa-envelope-circle-check text-2xl text-yellow-500"></i>
+              </div>
+              <h4 class="font-bold text-lg mb-2 text-gray-800">學校電郵登記及登入</h4>
+              <p class="text-gray-600 text-sm leading-relaxed">請選擇並使用您的「學校電郵帳戶」（如 Google / Microsoft 學校電郵）完成登記及登入。</p>
+            </div>
+
+            <!-- 步驟 3 -->
+            <div class="bg-yellow-50/70 rounded-2xl p-6 border border-yellow-200/70 text-center relative pt-10">
+              <div class="w-11 h-11 bg-warmgold text-gray-900 rounded-full flex items-center justify-center text-lg font-black absolute -top-5 left-1/2 -translate-x-1/2 shadow">3</div>
+              <div class="bg-white w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
+                <i class="fa-solid fa-clipboard-check text-2xl text-yellow-500"></i>
+              </div>
+              <h4 class="font-bold text-lg mb-2 text-gray-800">貼上題目與作答</h4>
+              <p class="text-gray-600 text-sm leading-relaxed">貼上公民科題目及您的作答內容，即時獲得符合考評局閱卷標準的 AI 評改回饋。</p>
             </div>
           </div>
+        </div>
 
-          <!-- 卡片 5 -->
-          <div onclick="jumpToPage(63, 57, '第五批：多元文化與國家參與')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border-2 border-transparent hover:border-bamboo transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
-            <div class="relative h-40 bg-gray-100 overflow-hidden">
-              <img src="https://drive.google.com/thumbnail?id=1o8FppdDLmAfIngUoJq2oSVosCiVxVuO8&sz=w600-h400" alt="多元文化與國家參與" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-              <span class="absolute top-3 right-3 bg-warmgold text-gray-900 text-xs font-black px-3 py-1 rounded-full shadow">書頁第 57 頁</span>
-            </div>
-            <div class="p-4 flex-grow">
-              <h4 class="font-bold text-gray-800 group-hover:text-bamboo transition-colors text-sm">第五批：多元文化與國家參與</h4>
-              <p class="text-xs text-gray-500 mt-2 leading-relaxed">中國國籍及中國公民、香港參與國家事務、以中華文化為主體的香港社會、多元文化融和</p>
-            </div>
+        <!-- 熊貓波波溫馨提示區塊 -->
+        <div class="bg-green-50 rounded-2xl p-6 border border-green-200 flex flex-col sm:flex-row items-center gap-4">
+          <div class="text-5xl floating font-comic shrink-0">🐼</div>
+          <div class="text-center sm:text-left">
+            <h4 class="text-lg font-bold text-bamboo mb-1.5">熊貓波波溫馨提示：</h4>
+            <p class="text-gray-700 text-sm sm:text-base leading-relaxed">
+              各位同學，為確保系統能正確驗證學生身份並提供專屬評改額度，
+              <strong class="text-gray-900 border-b-2 border-warmgold">請務必使用學校官方電郵帳戶</strong>登入 AICMark 評改系統喔！
+            </p>
           </div>
+        </div>
 
-          <!-- 卡片 6 -->
-          <div onclick="jumpToPage(73, 67, '第六批：改革開放與國力提升')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border-2 border-transparent hover:border-bamboo transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
-            <div class="relative h-40 bg-gray-100 overflow-hidden">
-              <img src="https://drive.google.com/thumbnail?id=1CR7NzSXFzG7weHMPjRbNruoWjZx4C3_n&sz=w600-h400" alt="改革開放與國力提升" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-              <span class="absolute top-3 right-3 bg-warmgold text-gray-900 text-xs font-black px-3 py-1 rounded-full shadow">書頁第 67 頁</span>
-            </div>
-            <div class="p-4 flex-grow">
-              <h4 class="font-bold text-gray-800 group-hover:text-bamboo transition-colors text-sm">第六批：改革開放與國力提升</h4>
-              <p class="text-xs text-gray-500 mt-2 leading-relaxed">改革開放、人民生活素質的提升 (經濟/消費/脫貧)、人民生活素質的提升 (教育/醫療/壽命)、綜合國力 (經濟/國防/科技)</p>
-            </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 頁尾 -->
+  <footer class="bg-gray-800 text-gray-300 py-5 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs sm:text-sm">
+      <p>本系統不預載考評局歷屆試題 • 遵循個人自習無版權疑慮原則</p>
+    </div>
+  </footer>
+
+  <!-- 核心互動邏輯 -->
+  <script>
+    // 14 個單元批次資料（PDF 實際頁數 = 書本印刷頁數 + 4）
+    const CHAPTERS = [
+      { id: 1, title: "1. 答題與考試技巧", desc: "評核模式分析、綜合技巧Q&A、多項選擇題及短題目技巧", printed: 1, pdf: 5, imgId: "1guJu7ePIiq2JEOxJrWaGIM9cwxedu-Ed" },
+      { id: 2, title: "2. 短文章寫作與香港憲制", desc: "短文章式問題技巧、香港回歸、國家與香港的憲制關係、「一國兩制」", printed: 9, pdf: 13, imgId: "1FaP_QWGF4i4wfvK6OwqJZvaxR7iA06LQ" },
+      { id: 3, title: "3. 香港法治與政治體制", desc: "國家安全、香港特區政治體制、行政主導下的「三權」關係、法治精神", printed: 34, pdf: 38, imgId: "1wL-3nwndOh9bX73g6Bq4N9ZboovBIC-i" },
+      { id: 4, title: "4. 國家認同與公民素養", desc: "香港居民權利與義務、國家政治體制、中華民族、國旗國徽國歌", printed: 46, pdf: 50, imgId: "1QfADhBgHbhOn9ZbSKf_o5FCkFXvr0F4U" },
+      { id: 5, title: "5. 多元文化與國家參與", desc: "中國國籍及公民、香港參與國家事務、以中華文化為主體、多元融和", printed: 57, pdf: 61, imgId: "1o8FppdDLmAfIngUoJq2oSVosCiVxVuO8" },
+      { id: 6, title: "6. 改革開放與國力提升", desc: "改革開放、人民生活素質提升（經濟/教育/醫療）、綜合國力", printed: 67, pdf: 71, imgId: "1CR7NzSXFzG7weHMPjRbNruoWjZx4C3_n" },
+      { id: 7, title: "7. 國家發展規劃與大灣區", desc: "綜合國力（教育文化自然資源）、「十四五」規劃與香港、粵港澳大灣區", printed: 81, pdf: 85, imgId: "1U4CcUbWk-5xVg2S4nR9UV6ifgBTyZUB5" },
+      { id: 8, title: "8. 全方位外交與國際合作", desc: "CEPA、全方位外交、不同性質的救援行動、籌組國際組織", printed: 104, pdf: 108, imgId: "1mYArOTqE_Ektd_RP-gKVoLty05S5WaJa" },
+      { id: 9, title: "9. 全球化與「一帶一路」", desc: "「一帶一路」倡議、參與國際事務影響、香港角色、經濟全球化", printed: 121, pdf: 125, imgId: "1VQIniDMgebSufPF9pZbuqwrYJGJUHa6w" },
+      { id: 10, title: "10. 跨國企業與新經濟發展", desc: "國際經濟組織與合作機制、跨國企業及其影響、新經濟發展", printed: 132, pdf: 136, imgId: "1fkLqlGdOWqOMr9HDpmOL2QK0ISAxRxrn" },
+      { id: 11, title: "11. 新科技與資訊素養", desc: "雲端儲存、大數據、人工智能、社交媒體及即時通訊軟件、資訊素養", printed: 144, pdf: 148, imgId: "1fZZnWCN4yedSW-tYJ8tDbUEIAsPYCGnP" },
+      { id: 12, title: "12. 可持續發展與減碳生活", desc: "可持續發展與持份者、低碳交通運輸系統、可持續廢物管理", printed: 155, pdf: 159, imgId: "1fZZnWCN4yedSW-tYJ8tDbUEIAsPYCGnP" },
+      { id: 13, title: "13. 生態保育與全球公共衛生", desc: "保護生物多樣性、負責任消費和生產、公共衛生概略、世界衛生組織", printed: 167, pdf: 171, imgId: "1Mmqwh0eT5EZ0nCAm9irZSKHxAIr_DECp" },
+      { id: 14, title: "14. 公共衛生貢獻及個人責任", desc: "國家與香港對全球公共衛生的貢獻、個人在維持公共衛生的責任", printed: 181, pdf: 185, imgId: "1CfuY65_u3pvb9EFDZsl8gvH1jH-Qj57k" }
+    ];
+
+    // 動態渲染 14 張章節導航卡片
+    function renderChapterCards() {
+      const container = document.getElementById('chapter-cards');
+      container.innerHTML = CHAPTERS.map(ch => `
+        <div onclick="jumpToPage(${ch.pdf}, ${ch.printed}, '${ch.title}')"
+             class="chapter-card snap-start shrink-0 w-60 cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md border-2 border-gray-100 hover:border-bamboo transition-all duration-200 transform hover:-translate-y-0.5 flex flex-col"
+             data-id="${ch.id}">
+          <div class="relative h-28 bg-gray-100 overflow-hidden">
+            <img src="https://drive.google.com/thumbnail?id=${ch.imgId}&sz=w500-h300"
+                 alt="${ch.title}"
+                 onerror="this.src='https://placehold.co/500x300/22c55e/ffffff?text=${encodeURIComponent(ch.title)}'"
+                 class="w-full h-full object-cover">
+            <span class="absolute top-2 right-2 bg-warmgold text-gray-900 text-xs font-black px-2.5 py-0.5 rounded-full shadow">書頁 P.${ch.printed}</span>
           </div>
-
-          <!-- 卡片 7 -->
-          <div onclick="jumpToPage(87, 81, '第七批：國家發展規劃與大灣區')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border-2 border-transparent hover:border-bamboo transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
-            <div class="relative h-40 bg-gray-100 overflow-hidden">
-              <img src="https://drive.google.com/thumbnail?id=1U4CcUbWk-5xVg2S4nR9UV6ifgBTyZUB5&sz=w600-h400" alt="國家發展規劃與大灣區" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-              <span class="absolute top-3 right-3 bg-warmgold text-gray-900 text-xs font-black px-3 py-1 rounded-full shadow">書頁第 81 頁</span>
-            </div>
-            <div class="p-4 flex-grow">
-              <h4 class="font-bold text-gray-800 group-hover:text-bamboo transition-colors text-sm">第七批：國家發展規劃與大灣區</h4>
-              <p class="text-xs text-gray-500 mt-2 leading-relaxed">綜合國力 (教育/文化/自然資源)、「十四五」規劃、「十四五」規劃與香港、粵港澳大灣區</p>
-            </div>
+          <div class="p-3 flex-grow">
+            <h4 class="font-bold text-gray-800 text-sm truncate">${ch.title}</h4>
+            <p class="text-xs text-gray-500 mt-1 leading-relaxed line-clamp-2">${ch.desc}</p>
           </div>
+        </div>
+      `).join('');
+    }
 
-          <!-- 卡片 8 -->
-          <div onclick="jumpToPage(110, 104, '第八批：全方位外交與國際合作')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border-2 border-transparent hover:border-bamboo transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
-            <div class="relative h-40 bg-gray-100 overflow-hidden">
-              <img src="https://drive.google.com/thumbnail?id=1mYArOTqE_Ektd_RP-gKVoLty05S5WaJa&sz=w600-h400" alt="全方位外交與國際合作" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-              <span class="absolute top-3 right-3 bg-warmgold text-gray-900 text-xs font-black px-3 py-1 rounded-full shadow">書頁第 104 頁</span>
-            </div>
-            <div class="p-4 flex-grow">
-              <h4 class="font-bold text-gray-800 group-hover:text-bamboo transition-colors text-sm">第八批：全方位外交與國際合作</h4>
-              <p class="text-xs text-gray-500 mt-2 leading-relaxed">CEPA、全方位外交、不同性質的救援行動、籌組國際組織</p>
-            </div>
-          </div>
+    // ==================== PDF.js 閱讀器邏輯 ====================
+    // 優先使用同源相對路徑，避免跨網域限制；若在非 GitHub 環境預覽則自動退回完整網址
+    const PDF_URL = window.location.hostname.includes('github.io')
+      ? './csd-handbook.pdf'
+      : 'https://fgsswkn-lab.github.io/csd-notes/csd-handbook.pdf';
 
-          <!-- 卡片 9 -->
-          <div onclick="jumpToPage(127, 121, '第九批：全球化與「一帶一路」')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border-2 border-transparent hover:border-bamboo transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
-            <div class="relative h-40 bg-gray-100 overflow-hidden">
-              <img src="https://drive.google.com/thumbnail?id=1VQIniDMgebSufPF9pZbuqwrYJGJUHa6w&sz=w600-h400" alt="全球化與「一帶一路」" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-              <span class="absolute top-3 right-3 bg-warmgold text-gray-900 text-xs font-black px-3 py-1 rounded-full shadow">書頁第 121 頁</span>
-            </div>
-            <div class="p-4 flex-grow">
-              <h4 class="font-bold text-gray-800 group-hover:text-bamboo transition-colors text-sm">第九批：全球化與「一帶一路」</h4>
-              <p class="text-xs text-gray-500 mt-2 leading-relaxed">「一帶一路」倡議、國家參與國際事務的影響、香港於國家參與國際事務中的角色、經濟全球化</p>
-            </div>
-          </div>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-          <!-- 卡片 10 -->
-          <div onclick="jumpToPage(138, 132, '第十批：跨國企業與新經濟發展')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl
+    let pdfDoc = null;
+    let currentPage = 1;
+    let pageRendering = false;
+    let pageNumPending = null;
+    let currentScale = 1.35;
+
+    const canvas = document.getElementById('pdf-canvas');
+    const ctx = canvas.getContext('2d');
+    const loadingEl = document.getElementById('pdf-loading');
+
+    function renderPage(num) {
+      if (!pdfDoc) return;
+      pageRendering = true;
+      pdfDoc.getPage(num).then(page => {
+        const viewport = page.getViewport({ scale: currentScale });
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        return page.render({ canvasContext: ctx, viewport: viewport }).promise;
+      }).then(() => {
+        pageRendering = false;
+        loadingEl.classList.add('hidden');
+        canvas.classList.remove('hidden');
+        document.getElementById('page-input').value = num;
+
+        if (pageNumPending !== null) {
+          const nextNum = pageNumPending;
+          pageNumPending = null;
+          renderPage(nextNum);
+        }
+      }).catch(err => {
+        pageRendering = false;
+        console.error('渲染頁面錯誤:', err);
+      });
+    }
+
+    function queueRenderPage(num) {
+      if (!pdfDoc || num < 1 || num > pdfDoc.numPages) return;
+      currentPage = num;
+      if (pageRendering) {
+        pageNumPending = num;
+      } else {
+        renderPage(num);
+      }
+    }
+
+    function prevPage() {
+      if (currentPage > 1) queueRenderPage(currentPage - 1);
+    }
+
+    function nextPage() {
+      if (pdfDoc && currentPage < pdfDoc.numPages) queueRenderPage(currentPage + 1);
+    }
+
+    function goToInputPage() {
+      const val = parseInt(document.getElementById('page-input').value, 10);
+      if (!isNaN(val) && pdfDoc && val >= 1 && val <= pdfDoc.numPages) {
+        queueRenderPage(val);
+      }
+    }
+
+    function changeZoom(delta) {
+      const next = Number((currentScale + delta).toFixed(2));
+      if (next >= 0.7 && next <= 2.5) {
+        currentScale = next;
+        queueRenderPage(currentPage);
+      }
+    }
+
+    // 點擊卡片跳轉至對應 PDF 頁碼
+    function jumpToPage(pdfPage, printedPage, topicTitle) {
+      const indicator = document.getElementById('page-indicator');
+      document.getElementById('page-indicator-text').textContent = `${topicTitle} — 書頁 P.${printedPage}（PDF 第 ${pdfPage} 頁）`;
+      indicator.classList.remove('hidden');
+      indicator.classList.add('inline-flex');
+
+      if (pdfDoc) {
+        queueRenderPage(pdfPage);
+      } else {
+        // 若 PDF 仍在載入中，記錄目標頁數待載入完成後自動跳轉
+        currentPage = pdfPage;
+      }
+      document.getElementById('pdf-viewer-box').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // 載入 PDF 檔案
+    function initPdfViewer() {
+      pdfjsLib.getDocument(PDF_URL).promise.then(doc => {
+        pdfDoc = doc;
+        document.getElementById('page-count').textContent = pdfDoc.numPages;
+        document.getElementById('page-input').max = pdfDoc.numPages;
+        renderPage(currentPage);
+      }).catch(err => {
+        console.error('PDF 載入失敗:', err);
+        loadingEl.innerHTML = `
+          <i class="fa-solid fa-triangle-exclamation text-4xl text-warmgold mb-3"></i>
+          <p class="font-bold text-base mb-1">無法載入《速讀精華手冊.pdf》</p>
+          <p class="text-xs text-gray-300">請確認 csd-handbook.pdf 已上載至 GitHub 同一資料夾，並等待部署完成後按 Ctrl+F5 重新整理。</p>
+        `;
+      });
+    }
+
+    // ==================== 分頁與選單切換 ====================
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-panel').forEach(el => {
+        el.classList.toggle('active', el.id === tabId);
+      });
+
+      // 更新頂部導覽列按鈕樣式
+      document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+        const isActive = btn.dataset.target === tabId;
+        btn.classList.toggle('bg-white', isActive);
+        btn.classList.toggle('text-bamboo', isActive);
+        btn.classList.toggle('shadow-sm', isActive);
+        btn.classList.toggle('hover:bg-green-600', !isActive);
+      });
+
+      // 更新 Hero 下方雙分頁切換列樣式
+      document.querySelectorAll('.pill-tab-btn').forEach(btn => {
+        const isActive = btn.dataset.target === tabId;
+        btn.classList.toggle('bg-bamboo', isActive);
+        btn.classList.toggle('text-white', isActive);
+        btn.classList.toggle('shadow', isActive);
+        btn.classList.toggle('text-gray-600', !isActive);
+        btn.classList.toggle('hover:bg-gray-100', !isActive);
+      });
+    }
+
+    function toggleMobileMenu() {
+      document.getElementById('mobile-menu').classList.toggle('hidden');
+    }
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      renderChapterCards();
+      initPdfViewer();
+      switchTab('notes');
+    });
+  </script>
+</body>
+</html>
