@@ -61,17 +61,16 @@
       animation-delay: 1.5s;
     }
 
+    /* 預設顯示 active 分頁，避免 JS 延遲導致空白 */
     .tab-content {
       display: none;
-      opacity: 0;
-      transition: opacity 0.4s ease;
     }
     .tab-content.active {
       display: block;
-      animation: fadeIn 0.5s forwards;
+      animation: fadeIn 0.4s ease forwards;
     }
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
+      from { opacity: 0; transform: translateY(8px); }
       to { opacity: 1; transform: translateY(0); }
     }
     
@@ -104,10 +103,11 @@
         </div>
         
         <div class="hidden md:flex items-center space-x-2">
-          <button onclick="switchTab('notes')" class="tab-btn px-4 py-2 rounded-lg font-medium transition-colors duration-200" data-target="notes">
+          <!-- 預設第一個按鈕為選中狀態 -->
+          <button onclick="switchTab('notes')" class="tab-btn px-4 py-2 rounded-lg font-medium transition-colors duration-200 bg-white text-bamboo shadow-sm" data-target="notes">
             <i class="fa-solid fa-book-open mr-1"></i> 課題溫習筆記
           </button>
-          <button onclick="switchTab('ai')" class="tab-btn px-4 py-2 rounded-lg font-medium transition-colors duration-200" data-target="ai">
+          <button onclick="switchTab('ai')" class="tab-btn px-4 py-2 rounded-lg font-medium transition-colors duration-200 hover:bg-green-600" data-target="ai">
             <i class="fa-solid fa-robot mr-1"></i> AI 智能評改系統
           </button>
         </div>
@@ -131,7 +131,7 @@
   </nav>
 
   <!-- Hero Banner 區塊 -->
-  <header class="max-w-5xl mx-auto px-4 py-10 md:py-14 text-center">
+  <header class="max-w-5xl mx-auto px-4 py-8 md:py-12 text-center">
     <div class="flex justify-center items-center space-x-3 mb-4 text-4xl md:text-5xl">
       <span class="floating font-comic">🐼</span>
       <h1 class="font-black text-gray-800 leading-tight">
@@ -139,17 +139,17 @@
       </h1>
       <span class="floating-delay font-comic">🐲</span>
     </div>
-    <p class="mt-4 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+    <p class="mt-4 text-base md:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
       專為 HKDSE 公民與社會發展科設計的自主學習平台。<br class="hidden md:block">
       結合 <span class="font-bold text-yellow-600">《速讀精華手冊》高清筆記</span> 與強大的 <span class="font-bold text-bamboo">考評局閱卷標準 AI 評改助手</span>，助你高效溫習！
     </p>
   </header>
 
   <!-- 主要內容區塊 -->
-  <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-20">
+  <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-16">
     
-    <!-- 分頁一：課題溫習筆記 -->
-    <div id="notes" class="tab-content">
+    <!-- 分頁一：課題溫習筆記（直接加上 active 確保預設顯示） -->
+    <div id="notes" class="tab-content active">
       
       <!-- 圖片快速導航卡片區 -->
       <div class="mb-8">
@@ -210,4 +210,64 @@
           </div>
 
           <!-- 卡片 5 -->
-          <div onclick="jumpToPage(63, 57, '第五批：多元文化與國家參與')" class="snap-start shrink-0 w-
+          <div onclick="jumpToPage(63, 57, '第五批：多元文化與國家參與')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border-2 border-transparent hover:border-bamboo transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
+            <div class="relative h-40 bg-gray-100 overflow-hidden">
+              <img src="https://drive.google.com/thumbnail?id=1o8FppdDLmAfIngUoJq2oSVosCiVxVuO8&sz=w600-h400" alt="多元文化與國家參與" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+              <span class="absolute top-3 right-3 bg-warmgold text-gray-900 text-xs font-black px-3 py-1 rounded-full shadow">書頁第 57 頁</span>
+            </div>
+            <div class="p-4 flex-grow">
+              <h4 class="font-bold text-gray-800 group-hover:text-bamboo transition-colors text-sm">第五批：多元文化與國家參與</h4>
+              <p class="text-xs text-gray-500 mt-2 leading-relaxed">中國國籍及中國公民、香港參與國家事務、以中華文化為主體的香港社會、多元文化融和</p>
+            </div>
+          </div>
+
+          <!-- 卡片 6 -->
+          <div onclick="jumpToPage(73, 67, '第六批：改革開放與國力提升')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border-2 border-transparent hover:border-bamboo transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
+            <div class="relative h-40 bg-gray-100 overflow-hidden">
+              <img src="https://drive.google.com/thumbnail?id=1CR7NzSXFzG7weHMPjRbNruoWjZx4C3_n&sz=w600-h400" alt="改革開放與國力提升" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+              <span class="absolute top-3 right-3 bg-warmgold text-gray-900 text-xs font-black px-3 py-1 rounded-full shadow">書頁第 67 頁</span>
+            </div>
+            <div class="p-4 flex-grow">
+              <h4 class="font-bold text-gray-800 group-hover:text-bamboo transition-colors text-sm">第六批：改革開放與國力提升</h4>
+              <p class="text-xs text-gray-500 mt-2 leading-relaxed">改革開放、人民生活素質的提升 (經濟/消費/脫貧)、人民生活素質的提升 (教育/醫療/壽命)、綜合國力 (經濟/國防/科技)</p>
+            </div>
+          </div>
+
+          <!-- 卡片 7 -->
+          <div onclick="jumpToPage(87, 81, '第七批：國家發展規劃與大灣區')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border-2 border-transparent hover:border-bamboo transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
+            <div class="relative h-40 bg-gray-100 overflow-hidden">
+              <img src="https://drive.google.com/thumbnail?id=1U4CcUbWk-5xVg2S4nR9UV6ifgBTyZUB5&sz=w600-h400" alt="國家發展規劃與大灣區" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+              <span class="absolute top-3 right-3 bg-warmgold text-gray-900 text-xs font-black px-3 py-1 rounded-full shadow">書頁第 81 頁</span>
+            </div>
+            <div class="p-4 flex-grow">
+              <h4 class="font-bold text-gray-800 group-hover:text-bamboo transition-colors text-sm">第七批：國家發展規劃與大灣區</h4>
+              <p class="text-xs text-gray-500 mt-2 leading-relaxed">綜合國力 (教育/文化/自然資源)、「十四五」規劃、「十四五」規劃與香港、粵港澳大灣區</p>
+            </div>
+          </div>
+
+          <!-- 卡片 8 -->
+          <div onclick="jumpToPage(110, 104, '第八批：全方位外交與國際合作')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border-2 border-transparent hover:border-bamboo transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
+            <div class="relative h-40 bg-gray-100 overflow-hidden">
+              <img src="https://drive.google.com/thumbnail?id=1mYArOTqE_Ektd_RP-gKVoLty05S5WaJa&sz=w600-h400" alt="全方位外交與國際合作" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+              <span class="absolute top-3 right-3 bg-warmgold text-gray-900 text-xs font-black px-3 py-1 rounded-full shadow">書頁第 104 頁</span>
+            </div>
+            <div class="p-4 flex-grow">
+              <h4 class="font-bold text-gray-800 group-hover:text-bamboo transition-colors text-sm">第八批：全方位外交與國際合作</h4>
+              <p class="text-xs text-gray-500 mt-2 leading-relaxed">CEPA、全方位外交、不同性質的救援行動、籌組國際組織</p>
+            </div>
+          </div>
+
+          <!-- 卡片 9 -->
+          <div onclick="jumpToPage(127, 121, '第九批：全球化與「一帶一路」')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg border-2 border-transparent hover:border-bamboo transition-all duration-300 transform hover:-translate-y-1 flex flex-col">
+            <div class="relative h-40 bg-gray-100 overflow-hidden">
+              <img src="https://drive.google.com/thumbnail?id=1VQIniDMgebSufPF9pZbuqwrYJGJUHa6w&sz=w600-h400" alt="全球化與「一帶一路」" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+              <span class="absolute top-3 right-3 bg-warmgold text-gray-900 text-xs font-black px-3 py-1 rounded-full shadow">書頁第 121 頁</span>
+            </div>
+            <div class="p-4 flex-grow">
+              <h4 class="font-bold text-gray-800 group-hover:text-bamboo transition-colors text-sm">第九批：全球化與「一帶一路」</h4>
+              <p class="text-xs text-gray-500 mt-2 leading-relaxed">「一帶一路」倡議、國家參與國際事務的影響、香港於國家參與國際事務中的角色、經濟全球化</p>
+            </div>
+          </div>
+
+          <!-- 卡片 10 -->
+          <div onclick="jumpToPage(138, 132, '第十批：跨國企業與新經濟發展')" class="snap-start shrink-0 w-72 group cursor-pointer bg-white rounded-2xl
